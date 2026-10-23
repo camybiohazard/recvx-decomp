@@ -6033,6 +6033,16 @@ void bhCPM2_act_rld()
     switch (plp->mode3)
     {
     case 0: 
+#ifdef TARGET_PC   /* the weapon file has no reload motion (dual weapons: the SMG; dread.c bhReadWeaponData empties the entry):
+                      the ammo is already combined (bhSearchBullet), so back to the aim as at the motion's end. The PS2
+                      played whatever entry 116 still held (the previous weapon's, its data overwritten); the PC crashed */
+        if (plp->mnwP[116].md2P == NULL)
+        {
+            plp->mode2 = (plp->at_flg & 0x8) ? 67 : (plp->at_flg & 0x4) ? 66 : 65;
+            plp->mode3 = 0;
+            return;
+        }
+#endif
         plp->flg |= 0xC0000;
         
         plp->mtn_no = 116;

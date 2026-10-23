@@ -308,6 +308,11 @@ void bhReadWeaponData()
     
     sz = *(unsigned int*)dp;
     
+#ifdef TARGET_PC   /* a file without the reload motion (116: knife, Gold Lugers, SMG, M-100P, linear and rocket launcher) skips
+                      its entry, which kept the previous weapon's, pointing into this buffer now overwritten (or NULL):
+                      empty, bhCPM2_act_rld reloads without a motion */
+    if (plp->mnwP != NULL) memset(&plp->mnwP[116], 0, sizeof(plp->mnwP[116]));
+#endif
     if (sz != 0) 
     {
         plmtnp = sys->plwmtp;
