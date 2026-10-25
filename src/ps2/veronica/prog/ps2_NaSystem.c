@@ -91,27 +91,12 @@ void Ps2SwapDBuff()
     EorFunc();
 
 #ifdef TARGET_PC
+    while (Ps2_vcount < 2)
     {
-        /* "Smooth menus" (pc_menu_smooth): in a menu the finished frame is handed over at once and
-           the wait for the second VBLANK follows, so it is shown a game frame sooner after the pad
-           read that made it; the game's pace and order of work stay the same */
-        int early = pc_menu_smooth();
-
-        if (early)
-        {
-            pc_swap_frame();
-        }
-
-        while (Ps2_vcount < 2)
-        {
-            ps2_wait_vblank(); /* blocks until the next emulated VBLANK interrupt has been delivered */
-        }
-
-        if (!early)
-        {
-            pc_swap_frame();
-        }
+        ps2_wait_vblank(); /* blocks until the next emulated VBLANK interrupt has been delivered */
     }
+
+    pc_swap_frame();
 #else
     while (Ps2_vcount < 2)
     {
