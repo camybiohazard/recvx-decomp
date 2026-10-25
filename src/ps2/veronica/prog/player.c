@@ -1519,12 +1519,6 @@ void bhControlPlayer()
         mnwP = plp->mnwP;
 
         (void*)plp->mtn_tp; // FAKE
-#ifdef TARGET_PC
-        pc_plp_frm = plp->frm_no;   /* the frame shown and its blend, before the step (gender-matched copy, co-op partner: actor_glue.c) */
-        pc_plp_hokan = plp->hokan_count;
-        pc_plp_mtn = plp->mtn_no;
-        pc_plp_set = plp->mnwP;
-#endif
         bhSetMotion(plp, (int)plp->mtn_add, plp->mtn_md, plp->mtn_tp);
         
         if ((plp->frm_no / 65536) >= (plp->mnwP[plp->mtn_no].frm_num - 1))

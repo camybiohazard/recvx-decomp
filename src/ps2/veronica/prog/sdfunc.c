@@ -1486,14 +1486,6 @@ void SetSyukanModeSoundParam() {
     }
 }
 
-#ifdef TARGET_PC
-/* the player's voice (bank 4) from the voice bank of the character the player appears as, an extra
-   bank (pc/glue/coop_glue.c, pc/src/audio/snd_iop.c); 0: bank 4 as loaded (the character played),
-   -1: none (co-op: the partner's own game voices it) */
-int pc_player_voice(int SeNo);
-extern int pc_se_xbank;
-#endif
-
 // 100% matching!
 void CallPlayerVoice(int SeNo) {
     SetupSeGenericParm(7, SeNo, &PlayerPos, 1, GsSlotInfoSe[7].Flag);
@@ -1501,16 +1493,7 @@ void CallPlayerVoice(int SeNo) {
     if (!(GsSlotInfoSe[7].Flag & 2)) {
         RequestInfo.Volume += Room_SoundEnv.VolPlayerVoice;
     }
-#ifdef TARGET_PC
-    if (RequestInfo.BankNo == 4 && (pc_se_xbank = pc_player_voice(SeNo)) < 0) {
-        pc_se_xbank = 0;
-        return;
-    }
-#endif
     ExPlaySe(&RequestInfo);
-#ifdef TARGET_PC
-    pc_se_xbank = 0;
-#endif
 }
 
 // 100% matching!
@@ -3065,7 +3048,7 @@ void Com_ExecCallBgm_And_BgSe()
 }
 
 #ifdef TARGET_PC
-void cheat_warp_sound(int after);   /* a room change without a door (teleport, co-op follow): the door scripts' music part (pc/glue/cheat_glue.c) */
+void cheat_warp_sound(int after);   /* a room change without a door (teleport): the door scripts' music part (pc/glue/cheat_glue.c) */
 #endif
 
 // 100% matching!

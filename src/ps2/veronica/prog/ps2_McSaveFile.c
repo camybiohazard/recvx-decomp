@@ -154,7 +154,7 @@ int mcWriteStartSaveFile(SAVEFILE* pSaveFile, MEMORYCARDSTATE* pCard, char** cpp
 #ifdef TARGET_PC
         if (pc_no_ink_ribbon() != 0)
         {
-            wp = NULL; /* PC option: saving uses no ink ribbon (pc/glue/coop_glue.c) */
+            wp = NULL; /* PC option: saving uses no ink ribbon */
         }
         
 #endif
@@ -345,7 +345,7 @@ ICONINFORMATION* mcCreateIconInit(ICONINFORMATION* pIcon, char** cppFileName, un
     
     strcpy(pIcon, "PS2D");
     
-    strcpy(pIcon->icon.TitleName, "‚q‚d‚r‚h‚c‚d‚m‚s@‚d‚u‚h‚k|‚b‚n‚c‚dF‚u‚…‚’‚‚Ž‚‰‚ƒ‚|‚w"); 
+    strcpy(pIcon->icon.TitleName, "ï¿½qï¿½dï¿½rï¿½hï¿½cï¿½dï¿½mï¿½sï¿½@ï¿½dï¿½uï¿½hï¿½kï¿½|ï¿½bï¿½nï¿½cï¿½dï¿½Fï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½|ï¿½w"); 
     
     pIcon->icon.OffsLF = 26;
     

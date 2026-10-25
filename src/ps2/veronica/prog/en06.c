@@ -1080,9 +1080,8 @@ void bhEne06_Nage(BH_PWORK* epw)
 #ifdef TARGET_PC
 /* The egg the moth lays (en27) is Claire's: her part file's sub-models 6/7 and her motions 90..97
    (the egg's 93..97 in sys->plmthp, the player's 90..92 while it hatches). On the PS2 only Claire
-   meets moths; another played character (F2 spawner, co-op) lacks them: bhEne27_Init read a NULL
-   key list (crash) and the hatching motions have no frames. The moth lays no egg on such a player.
-   (Not plp->mdl_n: "You appear as" lowers it while the part file stays Claire's.) */
+   meets moths; another played character (F2 spawner) lacks them: bhEne27_Init read a NULL
+   key list (crash) and the hatching motions have no frames. The moth lays no egg on such a player. */
 static int pc_moth_egg_ok(void)
 {
     MN_WORK* set[2] = { (MN_WORK*)sys->plmthp, plp->mnwPb };

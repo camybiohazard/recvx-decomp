@@ -399,13 +399,8 @@ int njSetTextureNumSys(unsigned int n)
 void	njReleaseTextureAll(void)
 {
 #ifdef TARGET_PC
-    if (coop_on || appear_on)
-    {
-        coop_textures_released();   /* player 2's textures go with everything else */
-    }
-    pc_lobby_textures_released();   /* the lobby's previews (and the actor slots when co-op is off) */
     spawn_textures_released();
-    trade_textures_released();      /* the trade screen's item icons */
+    actor_textures_released();   /* the display actors' (enemy variants') textures go too */
 #endif
     njInitTexture(Ps2_tex_info, Ps2_texmemlist_num);
 }

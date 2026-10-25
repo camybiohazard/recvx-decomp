@@ -409,13 +409,6 @@ void bhSysCallFirstmovie()
         sys->ss_flg &= ~0x200;
         sys->tk_flg = 0x300010;
         break;
-#ifdef TARGET_PC
-    case 8:   /* co-op lobby: the chosen save, as LOAD GAME leaves it (TypewriterExit) */
-        pc_lobby_load_save();
-        sys->ss_flg |= 0x200;
-        sys->tk_flg = 0x300010;
-        break;
-#endif
     }
 }
 
@@ -1511,9 +1504,6 @@ void bhSysCallMonitor()
             break;
         case 5:
             AllItemInit(0);
-#ifdef TARGET_PC
-            pc_quick_start(); /* co-op rule "Quick start": the host's new game begins with the manual read and the knife (pc/glue/coop_glue.c) */
-#endif
             
             sys->mn_md1 = 6;
             break;
@@ -1850,12 +1840,6 @@ void bhSysCallMonitor()
                         
                         sys->ply_stflg[sys->ply_id] = plp->stflg;
 
-#ifdef TARGET_PC
-                        if ((coop_on != 0) || (appear_on != 0))
-                        {
-                            coop_player_unload();   /* "You appear as": the character's own model back, so its textures are the ones released */
-                        }
-#endif
                         for (i = 0; i < plp->mdl_n; i++)
                         {
                             if (plp->mdl[i].texP != NULL) 
