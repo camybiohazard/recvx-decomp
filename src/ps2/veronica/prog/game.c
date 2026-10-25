@@ -50,17 +50,13 @@ void bhMainSequence()
         
         bhControlEnemy();
 #ifdef TARGET_PC
-        if (coop_on)
-        {
-            coop_fx_player();   /* the effects our player's step starts go to the partner (until coop_control_remote) */
-        }
         actor_hands_back();   /* "You appear as": the head and hands the game computed, not the model's */
 #endif
         bhControlPlayer();
 #ifdef TARGET_PC
-        if (coop_on || appear_on)   /* appear_on: "You appear as" without co-op */
+        if (appear_on)   /* "You appear as" (pc/glue/appear_glue.c) */
         {
-            coop_control_remote();
+            appear_control();
         }
 #endif
         bhControlEffect();
@@ -138,9 +134,6 @@ void bhMainSequence()
             {
                 bhDrawScreenFade();
             }
-#ifdef TARGET_PC
-            trade_draw();   /* co-op trade screen / request line (pc/glue/trade_glue.c) */
-#endif
         }
         
 #ifdef TARGET_PC
@@ -423,11 +416,6 @@ void bhAllDrawModel()
     }
 #ifdef TARGET_PC
     pose_trace_mark = 0;
-#endif
-#ifdef TARGET_PC
-    if (coop_on) {
-        coop_draw_remote();
-    }
 #endif
     if ((rom->mdl.texP != 0) && !(sys->error & 2)) {
         njSetTexture(rom->mdl.texP);

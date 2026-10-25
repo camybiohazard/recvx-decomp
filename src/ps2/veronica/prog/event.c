@@ -389,14 +389,6 @@ void bhControlEvent()
 {
 #ifdef TARGET_PC
     pc_unlock_scd1(0);   /* F2 cheat "Unlock all": a key's use spot sees the key used, as from the item screen (pc/glue/cheat_glue.c) */
-    
-    if (coop_on)
-    {
-        pc_detector_scd1(); /* co-op rule "Metal detector: Skipped": the empty security boxes of 0/9 rest (pc/glue/detector_glue.c) */
-        
-        coop_scd1(); /* the same per-frame script, traced: world events shared with the partner */
-    }
-    else
 #endif
     bhScenarioCheck((unsigned char*)bhScd2Ptr);
     
@@ -1411,7 +1403,7 @@ unsigned int bhPlItemCheck()
     bhScePtr++;
 
 #ifdef TARGET_PC
-    /* PC option: the typewriters' ink ribbon check passes without one (pc/glue/coop_glue.c); not in 0/9,
+    /* PC option: the typewriters' ink ribbon check passes without one (pc/src/host/host.c); not in 0/9,
        where the metal detector's script checks the same item (ink ribbons count as metal there) */
     if ((v0 == 31) && (pc_no_ink_ribbon() != 0) && !((sys->stg_no == 0) && (sys->rom_no == 9)))
     {
@@ -1422,12 +1414,6 @@ unsigned int bhPlItemCheck()
     if (pc_unlock_held(v0) != 0)
     {
         return 1;
-    }
-    
-    /* co-op rule "Metal detector: Skipped": in 0/9 every PlItemCheck is the detector's metal check (pc/glue/detector_glue.c) */
-    if (pc_detector_skipped() != 0)
-    {
-        return 0;
     }
     
 #endif
@@ -2210,13 +2196,6 @@ unsigned int bhItmCk()
             
             *v0 |= 0x80000000 >> v1;
             
-#ifdef TARGET_PC
-            if (coop_on)
-            {
-                coop_item_taken(v2 & 0x1FF, v4); /* co-op: an important item's pickup stays ours (shared loot, pc/glue/coop_glue.c) */
-            }
-            
-#endif
             v0 = (int*)&sys->ic_flg;
             
             v0 += (v2 & 0x1E0) >> 5;
@@ -2225,12 +2204,6 @@ unsigned int bhItmCk()
             
             *v0 &= ~(0x80000000 >> v1);
         }
-#ifdef TARGET_PC
-        else if (coop_on)
-        {
-            coop_item_late(v2 & 0x1FF); /* co-op: the partner took this spot while our "take it?" was open (shared loot, pc/glue/coop_glue.c) */
-        }
-#endif
     }
     else 
     { 

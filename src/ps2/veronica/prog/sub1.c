@@ -3751,10 +3751,6 @@ void GetItem(S_WORK* st)
     {
         sys->sb_id = 35;
     }
-#ifdef TARGET_PC
-    /* co-op: an item an event hands over without asking (its script set cb_flg 0x4000) */
-    int pc_given = coop_on && st->testmode == 0 && (sys->cb_flg & 0x4000) && !(sys->cb_flg & 0x1000000) && !(swork.statusflg & 0x100);
-#endif
     
     switch (st->testmode) 
     {                              
@@ -4174,12 +4170,6 @@ void GetItem(S_WORK* st)
         
         sys->cb_flg &= ~0x1000000;
     }
-#ifdef TARGET_PC
-    if (pc_given && (swork.statusflg & 0x100))
-    {
-        coop_item_granted(sys->sb_id);
-    }
-#endif
 }
 
 // 100% matching!
