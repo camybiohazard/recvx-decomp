@@ -154,7 +154,7 @@ int mcWriteStartSaveFile(SAVEFILE* pSaveFile, MEMORYCARDSTATE* pCard, char** cpp
 #ifdef TARGET_PC
         if (pc_no_ink_ribbon() != 0)
         {
-            wp = NULL; /* PC option: saving uses no ink ribbon (pc/glue/coop_glue.c) */
+            wp = NULL; /* PC option: saving uses no ink ribbon (pc/src/host/host.c) */
         }
         
 #endif
