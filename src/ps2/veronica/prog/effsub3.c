@@ -921,6 +921,12 @@ O_WRK* bhSetEffParticle(BH_PWORK* ewP, int lnk_no, NJS_POINT3* offP, NJS_POINT3*
     E02_WRK* e02bP;   
     unsigned int tmp; 
     
+#ifdef TARGET_PC
+    if (coop_on)
+    {
+        coop_fx_particle(ewP, lnk_no, offP, dirP, color, 0, typ_no, 0);   /* co-op: to the partner too (EV_FX) */
+    }
+#endif
 	ptP = (PT_WORK*)&PtclTbl[typ_no];
     pdP = ptP->pdP;
     
@@ -1018,6 +1024,12 @@ O_WRK* bhSetEffParticleMk2(BH_PWORK* ewP, int lnk_no, NJS_POINT3* offP, NJS_POIN
     E02_WRK* e02bP;   
     unsigned int tmp; 
     
+#ifdef TARGET_PC
+    if (coop_on)
+    {
+        coop_fx_particle(ewP, lnk_no, offP, dirP, src_col, dst_col, typ_no, 1);   /* co-op: to the partner too (EV_FX) */
+    }
+#endif
 	ptP = (PT_WORK*)&PtclTbl[typ_no];
     pdP = ptP->pdP;
     

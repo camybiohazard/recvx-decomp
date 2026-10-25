@@ -1699,6 +1699,10 @@ void DisplayGameModePlate(int Cursor, int CursorMax, float FadeRate, int Flag)
     float PosYDef[2][4] = { { 288.0f, 320.0f, 352.0f, 384.0f }, { 272.0f, 304.0f, 336.0f, 368.0f } }; 
     float VDef[2][4] = { { 64.0f, 96.0f, 128.0f, 224.0f }, { 64.0f, 96.0f, 224.0f, 128.0f } }; 
 
+#ifdef TARGET_PC
+    pc_title_plates(Cursor, CursorMax, FadeRate, Flag);   /* with the MULTIPLAYER row */
+    return;
+#endif
     DivTbl[Cursor] = 1;
 
     i = (ap->ExtraFlag == 0) ? 0 : 1;
@@ -2099,6 +2103,14 @@ int CheckButton(int Level, int Flag, int MaxFlag)
                 
                 TitleCall(ap->PortId, 6);
                 break;
+#ifdef TARGET_PC
+            case 4:   /* MULTIPLAYER: the co-op lobby (mode 30) */
+                ap->LastLevel = Level;
+                ap->NextMode = 30;
+                ap->Mode = 10;
+                CallSystemSe(0, 3);
+                break;
+#endif
             }
             
             break;
@@ -2173,7 +2185,7 @@ int Adv_BioCvTitle()
     ExecuteAdvFade(); 
     ExecuteAdvScreenSaver(); 
 #ifdef TARGET_PC
-    pc_title_mouse_active(ap->Mode == 9 || ap->Mode == 12 || ap->Mode == 15);
+    pc_title_mouse_active(ap->Mode == 9 || ap->Mode == 12 || ap->Mode == 15 || ap->Mode == 30);
 #endif
     
     AdvCheckSoftReset(0); 
@@ -2268,7 +2280,7 @@ int Adv_BioCvTitle()
             }
         }
 #ifdef TARGET_PC
-        pc_title_menu_init();   /* BATTLE GAME offered without a cleared game (setting) */
+        pc_title_menu_init();   /* MULTIPLAYER as the last row */
 #endif
  
         ap->Mode = 1; 
@@ -2505,6 +2517,30 @@ int Adv_BioCvTitle()
         
         FadeOutPlate(); 
         break; 
+#ifdef TARGET_PC
+    case 30:   /* the co-op lobby (pc/glue/lobby_glue.c) */
+        switch (pc_lobby())
+        {
+        case 1:   /* back to the menu */
+            ap->FlushCount = 0;
+            ap->FlushSpeed = 32.0f;
+            ap->Mode = 8;
+            break;
+        case 2:   /* new game (sys->gm_mode set) */
+            ap->AppMode = 1;
+            ap->FromTitle = 0;
+            ap->LastLevel = 0;
+            TitleCall(ap->PortId, 2);
+            break;
+        case 3:   /* the save chosen in the lobby */
+            ap->AppMode = 1;
+            ap->FromTitle = 1;
+            ap->LastLevel = 0;
+            TitleCall(ap->PortId, 8);
+            break;
+        }
+        break;
+#endif
     case 17:
         if (CheckAdvFade() == 0) 
         { 
@@ -2558,7 +2594,12 @@ int Adv_BioCvTitle()
         
         AdvEasyReleaseTexture();
         
+#ifndef TARGET_PC
         if ((ap->NextReturnCode == 3) || (ap->NextReturnCode == 2) || (ap->NextReturnCode == 6)) 
+#else
+        pc_lobby_close();
+        if ((ap->NextReturnCode == 3) || (ap->NextReturnCode == 2) || (ap->NextReturnCode == 6) || (ap->NextReturnCode == 8)) 
+#endif
         {
             StopAdx(0);
         }

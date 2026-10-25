@@ -829,6 +829,10 @@ void bhControlEffect()
                         }
                     }
                     
+#ifdef TARGET_PC
+                    {
+                    int pc_fx = coop_on && coop_fx_step(i, 0);   /* co-op: a partner's projectile only shows; ours sends its blast */
+#endif
                     if (op->id < 150) 
                     {
                         bhJumpEffect[op->id](op);
@@ -850,6 +854,11 @@ void bhControlEffect()
                         bhJumpEffect4[op->id - 350](op);
                     }
 #ifdef TARGET_PC
+                    if (pc_fx)
+                    {
+                        coop_fx_step(i, 1);
+                    }
+                    }
                     if (pc_enemy_added && (op->flg & 0x1) && !(op->stflg & 0x20) && pc_fx_tex_missing(op->id, op->tex_id))   /* (only with added enemies: retail rooms as retail) */
                     {
                         op->flg |= 0x1000000;   /* a room effect texture this room has not uploaded: nothing rather than another texture */

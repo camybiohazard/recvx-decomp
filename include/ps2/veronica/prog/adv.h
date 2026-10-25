@@ -68,8 +68,13 @@ typedef struct ADV_WORK
     char KeyCommandCount[7];          // offset 0xB5, size 0x7
     char Cursor[3];                   // offset 0xBC, size 0x3
     char CursorMax[3];                // offset 0xBF, size 0x3
+#ifndef TARGET_PC
     char CursorFlag[4][4];            // offset 0xC2, size 0x10
     char ModeCommandId[4];            // offset 0xD2, size 0x4
+#else
+    char CursorFlag[4][5];            /* PC: a fifth title menu row, MULTIPLAYER (pc/glue/lobby_glue.c) */
+    char ModeCommandId[5];
+#endif
 } ADV_WORK;
 
 typedef struct PVP_INFO 

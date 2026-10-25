@@ -175,7 +175,8 @@ static BH_PWORK* pc_running;               /* the enemy whose code runs (bhContr
    attack - within a family. Types the PS2 never put in one room do not always: a Black Widow's
    grab wrote its throw level into a Hunter's hit, Monster Steve's throw read a zombie's grab
    motions (crashes). So in rooms with added enemies a held player is put back after another
-   enemy's code changed it (its parts and children count as the holder). */
+   enemy's code changed it (its parts and children count as the holder). Per player: co-op runs
+   an enemy against the partner's work (coop_glue.c swaps plp). */
 static struct { BH_PWORK* pl; BH_PWORK* by; } pc_held[2];
 
 static BH_PWORK* pc_root(BH_PWORK* ep) { return pc_root_in(ep, ene, 128); }   /* a part's or child's parent enemy (pc_rules.h) */
@@ -198,24 +199,20 @@ void pc_enemy_mark_added(void)
     pc_enemy_added = 1;
 }
 
+void pc_enemy_watch(BH_PWORK* ep, int slot, int ran);   /* coop_glue.c */
+void pc_enemy_unhold(BH_PWORK* ep);
 void host_log(const char* fmt, ...);
 
-/* an enemy's grab let go of, as at the end of a grab (en01 MV00: idle motion, then the chase); its
-   linked lower body runs the same modes, so it goes along. A dead one only lets go, its death goes on. */
-static void pc_unhold(BH_PWORK* ep, int dead)
+/* co-op (coop_glue.c grab_in): the host's zombie hands its grab to our game, which puts our player in
+   the grab outside any enemy's code - that zombie is the holder from now on */
+void pc_enemy_holds(BH_PWORK* pl, BH_PWORK* by)
 {
-    BH_PWORK* low = (BH_PWORK*)ep->exp1;
-    if (!ep->exp0 || ep->id != 1) return;
-    *(int*)(ep->exp0 + 0x40) &= ~0xA4080;
-    if (!dead) {
-        *(int*)&ep->mode0 = 1;
-        ep->flg2 &= ~1;
-        ep->flg |= 0x40;   /* the player collides with it again (the grab cleared it, its end sets it) */
-    }
-    if (low && low >= ene && low < ene + 128 && (low->flg & 0x80)) pc_unhold(low, dead);
+    int h;
+    for (h = 0; h < 2 && pc_held[h].pl != pl; h++);
+    if (h == 2) h = pc_held[0].by ? 1 : 0;
+    pc_held[h].pl = pl;
+    pc_held[h].by = by;
 }
-
-void pc_enemy_unhold(BH_PWORK* ep) { pc_unhold(ep, ep->hp < 0); }
 
 /* the enemy type whose sounds a request of enemy `slot` plays (sdfunc.c via spawn_glue.c): the enemy
    whose code runs, else `slot`; 127 outside enemy code is an effect's request (zonzon1.c
@@ -259,7 +256,7 @@ static void pc_call_enemy(BH_PWORK* ep, int slot)
         busy = pl->mode0 != keep.mode0 && (pl->mode0 == 4 || pl->mode0 == 6);   /* it started a grab */
         *pl = keep;
         /* refused: a zombie would play its grab on nobody (and its bites would drive the other holder's
-           grab); it lets go as at the end of a grab instead */
+           grab); it lets go as at the end of a grab instead (coop_glue.c) */
         if (busy && ep->id == 1) {
             pc_enemy_unhold(ep);
             host_log("enemies: enemy %d's grab refused, another enemy holds the player: released\n", slot);
@@ -501,24 +498,37 @@ void bhControlEnemy()
                 }
                 
 #ifdef TARGET_PC
+                /* co-op: the host retargets the enemy, the client animates the host's state */
                 {
-                    /* enemy variants (pc/glue/variant_glue.c): their factors around the step; speed: 0..2 steps */
-                    int runs = pc_variant_n ? pc_variant_pre(ep, i) : 1;
+                    int ran = !coop_on || !coop_enemy_begin(ep);
 
-                    while (runs-- > 0)
+                    if (ran)
                     {
-                        pc_call_enemy(ep, i);
+                        /* enemy variants (pc/glue/variant_glue.c): their factors around the step; speed: 0..2 steps */
+                        int runs = pc_variant_n ? pc_variant_pre(ep, i) : 1;
 
-                        if (runs > 0)
+                        while (runs-- > 0)
                         {
-                            bhEne_InitDamage(ep);
+                            pc_call_enemy(ep, i);
+
+                            if (runs > 0)
+                            {
+                                bhEne_InitDamage(ep);
+                            }
                         }
                     }
 
-                    if (pc_variant_n)
+                    if (pc_variant_n)   /* (also a co-op puppet: its death plays from the dead flag) */
                     {
                         pc_variant_post(ep, i);
                     }
+
+                    if (coop_on)
+                    {
+                        coop_enemy_end(ep);
+                    }
+
+                    pc_enemy_watch(ep, i, ran);   /* coop_glue.c: the frozen-enemy watchdog */
                 }
 #else
                 bhJumpEnemy[ep->id](ep);
@@ -964,7 +974,8 @@ void bhDrawEnemy()
                 if ((sys->st_flg & 0x20))
                 {
 #ifdef TARGET_PC
-                    if (!(pc_variant_n && pc_variant_draw(ep)))   /* an enemy variant's model or size */
+                    if (!(pc_variant_n && pc_variant_draw(ep)) &&   /* an enemy variant's model or size */
+                        (!actor_on || !actor_put_enemy(ep)))        /* the character played's cutscene double as another model */
 #endif
                     bhPutModel(ep);
                 }
@@ -1012,7 +1023,7 @@ void bhDrawEnemy()
                     else 
                     {
 #ifdef TARGET_PC
-                        if (!(pc_variant_n && pc_variant_draw(ep)))
+                        if (!(pc_variant_n && pc_variant_draw(ep)) && (!actor_on || !actor_put_enemy(ep)))
 #endif
                         bhPutModel(ep);
                     }

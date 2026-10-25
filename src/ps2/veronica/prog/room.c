@@ -1074,6 +1074,9 @@ void bhPushGameData()
     sys->ply_hp[sys->ply_id] = plp->hp;
     
     npCopyMemory(freemem, (unsigned char*)&sys->version, (int)&sys->save_end - (int)&sys->version);
+#ifdef TARGET_PC
+    if (coop_on) coop_retry_point();   /* co-op "Game over: Both": the partner's items go with this continue point */
+#endif
 }
 
 // 100% matching!
