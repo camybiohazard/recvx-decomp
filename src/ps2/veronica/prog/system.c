@@ -2568,6 +2568,9 @@ void bhSysCallScreenSaver()
         
         bhDispTime(&pos, 7, sys->time, 3, -0.9f); 
     }
+#ifdef TARGET_PC
+    hud_draw();   /* the ammo counter (hud_glue.c) */
+#endif
 }
 
 // 100% matching! 
