@@ -14,6 +14,7 @@
 #ifdef TARGET_PC
 static void pc_native_packet_test(unsigned int h, unsigned long test);
 static unsigned long pc_ot_poly;   /* Ps2AddOT: the entry is this effect polygon (pc_effect_poly) */
+unsigned int pc_ot_pretext;        /* the next ordering-table 2D entry is the port's HUD: a NATIVE_PRETEXT marker goes before it (hud_glue.c) */
 #endif
 
 // the three vars below were originally defined as unsigned int in ps2_NaFog.c, and redeclared as unsigned long here
@@ -380,6 +381,12 @@ void Ps2AddPrim(unsigned long prim, void* dp, unsigned int num, unsigned int cli
             ? pc_native_prim((unsigned int)((prim >> 47) & 0x7FF), (const unsigned int*)dp, (int)num, (int)clip_3d_on,
                              (prim & 0x20000000000000) != 0, &key)
             : pc_native_prim_raw((unsigned int)((prim >> 47) & 0x7FF), (const unsigned int*)dp, (int)num, (int)clip_3d_on, &key);
+        if ((pc_ot_pretext != 0) && ((prim & 0x20000000000000)))   /* same key, added first: drawn just before it */
+        {
+            pc_ot_pretext = 0;
+            pc_native_packet_test(NATIVE_PRETEXT, SCE_GS_SET_TEST(1, 6, 0, 0, 0, 0, 1, 2));
+            Ps2AddOT((void*)WORKBASE, 1, key, prim);
+        }
         pc_native_packet_test(h, SCE_GS_SET_TEST(1, 6, 0, 0, 0, 0, 1, 2));
         if ((prim & 0x20000000000000)) 
         {

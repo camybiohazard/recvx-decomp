@@ -283,6 +283,11 @@ void vu1SetSpeculaMaterial(VU1_COLOR* pSpecula)
 // 100% matching!
 void vu1SetAmbient(VU1_COLOR* pAmbient)
 {
+#ifdef TARGET_PC   /* the Ambient light option (light_glue.c) */
+    VU1_COLOR pc_amb __attribute__((aligned(16)));
+    pc_light_ambient_scale(pAmbient, &pc_amb);
+    pAmbient = &pc_amb;
+#endif
     vu1Ambient.fR = pAmbient->fR;
     vu1Ambient.fG = pAmbient->fG;
     vu1Ambient.fB = pAmbient->fB;

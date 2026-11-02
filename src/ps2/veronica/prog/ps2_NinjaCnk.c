@@ -1376,6 +1376,12 @@ CHUNK_HEAD* njCnkCvVn(CHUNK_HEAD* pCnk)
         pBuffer->fIb = fB;
     } 
     
+#ifdef TARGET_PC   /* the lighting options: the light sum again, per-pixel lighting: the normals (light_glue.c) */
+    if (pc_light_on())
+    {
+        pc_light_relight(&((float*)&pCnk[1])[1], 6, 3, &pNaCnkVerBufTop[*(unsigned short*)&pCnk[1]], *(unsigned short*)&pCnk[1], ((unsigned short*)&pCnk[1])[1], 1 << 30);
+    }
+#endif
     return (CHUNK_HEAD*)fpCnk;
 }
 
@@ -1503,6 +1509,12 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     
     pBuffer = &pNaCnkVerBufTop[*(unsigned short*)&pCnk[0]];
     
+#ifdef TARGET_PC   /* the vertices, for the lighting options (below) */
+    const float* pc_in = fpCnk;
+    VU1_STRIP_BUF* pc_out = pBuffer;
+    unsigned int pc_n = ulIndex;
+    int pc_first = *(unsigned short*)&pCnk[0];
+#endif
     njSetMatrixCN(pNaMatMatrixStuckPtr);
     
 #ifndef TARGET_PC
@@ -1678,6 +1690,10 @@ CHUNK_HEAD* njCnkCvVnPs2(CHUNK_HEAD* pCnk)
     { /* asm2c */
         vu0_callms(VU0_ADDR_VU0_CALCPOINT_END);
     }
+    if (pc_light_on())   /* the lighting options: the light sum again (light_glue.c), of the first four lights as CALCPOINT; per-pixel lighting: the normals */
+    {
+        pc_light_relight(pc_in, 8, 4, pc_out, pc_first, (int)pc_n, 4);
+    }
 #endif
     
     return (CHUNK_HEAD*)fpCnk;
@@ -1703,6 +1719,9 @@ CHUNK_HEAD* njCnkCvVMod(CHUNK_HEAD* pCnk)
     ulIndex = ((unsigned short*)&pCnk[1])[1];
     
     fpCnk = &((float*)&pCnk[1])[1];
+#ifdef TARGET_PC   /* per-pixel lighting: these vertices have no normal (light_glue.c) */
+    pc_light_forget(((unsigned short*)&pCnk[1])[0], (int)ulIndex);
+#endif
 
     fR00 = pNaMatMatrixStuckPtr[0][0];
     fR01 = pNaMatMatrixStuckPtr[0][1];
