@@ -24,6 +24,7 @@
 #include "../../../ps2/veronica/prog/itemview.h"
 #include "../../../ps2/veronica/prog/player.h"
 #include "../../../ps2/veronica/prog/ps2_loadtim2.h"
+#include "pc_rules.h"
 #endif
 
 #pragma optimization_level 4
@@ -4086,7 +4087,11 @@ void GetItem(S_WORK* st)
                     {
                         st->pip[amari + 1] = (sys->sb_id << 16) | (unsigned char)sys->itm[224]; 
                     } 
+#ifdef TARGET_PC   /* the lighter into its slot only while that is empty (Claire's lockpick may be there: pc_rules.h), else into this cell */
+                    else if (pc_to_special(st->pip, sys->sb_id, 55, 55))
+#else
                     else if (sys->sb_id == 55) 
+#endif
                     {
                         st->gb = (unsigned int*)&getbulletmax[sys->sb_id][sys->gm_mode];
                         
@@ -7920,7 +7925,11 @@ void ItemBoxChange(S_WORK* st, unsigned short ibcsr)
 		{
 			chk2 = 1;
             
+#ifdef TARGET_PC   /* into the special slot only while it is empty, else into the cell as any item (pc_rules.h): the game wrote it over the lighter or lockpick there */
+			if (pc_to_special(st->pip, id2, standard[sys->ply_id][0], standard[sys->ply_id][1]))
+#else
 			if ((id2 == standard[sys->ply_id][0]) || (id2 == standard[sys->ply_id][1]))
+#endif
 			{
 				lt_c3 = lt_c;
 				lt_c2 = 1;
@@ -7988,7 +7997,11 @@ void ItemBoxChange(S_WORK* st, unsigned short ibcsr)
         
 		if ((*st->pip > 1) && (lt_c != 1))
 		{
+#ifdef TARGET_PC   /* the cell was emptied: nothing came in, or the item went to the special slot (lt_c3, above) */
+			if ((!id2) || (lt_c3 == lt_c))
+#else
 			if ((!id2) || ((id2 == standard[sys->ply_id][0]) || (id2 == standard[sys->ply_id][1])))
+#endif
 			{
 				if (lt_c < *st->pip)
 				{
@@ -8919,9 +8932,14 @@ int bhSearchBullet()
     unsigned int z;  
     unsigned short bullettype; 
 
-    st = &swork; 
+    st = &swork;
 
-    if (!(sys->st_flg & 0x8000000)) 
+#ifdef TARGET_PC   /* the retail ELF tests gm_flg (sys+0x5C: the side pack, 10 slots, as ItemBox and the bag); st_flg's bit
+                      is the typewriter's, so the last two slots were never searched and ammo there did not reload */
+    if (!(sys->gm_flg & 0x8000000))
+#else
+    if (!(sys->st_flg & 0x8000000))
+#endif
     {
         max = 8;
     }
