@@ -2129,8 +2129,12 @@ void bhCPM1_act_bas()
         bhCPM2_act_rpsh();
         break;
     }
-    
+
+#ifdef TARGET_PC   /* running counts towards a push too (bhCPM2_act_run) */
+    if ((plp->mode2 != 3) && (plp->mode2 != 6)) 
+#else
     if (plp->mode2 != 3) 
+#endif
     {
         plp->psh_ct = 0;
     }
@@ -2560,6 +2564,19 @@ void bhCPM2_act_run()
             }
             
             bhAddSpeed(plp, 0);
+#ifdef TARGET_PC   /* running into a box's face pushes it as walking does (bhCPM2_act_wlk); the original only runs in place */
+            if ((plp->psh_ct > 5) && (!(plp->stflg & 0x80)))
+            {
+                plp->flg &= ~0x10000;
+
+                sys->st_flg |= 0x4;
+                plp->stflg |= 0x10080;
+
+                plp->mode2 = 18;
+                plp->mode3 = 0;
+                return;
+            }
+#endif
         }
         else
         {

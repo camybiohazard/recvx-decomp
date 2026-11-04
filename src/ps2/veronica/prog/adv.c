@@ -1699,6 +1699,10 @@ void DisplayGameModePlate(int Cursor, int CursorMax, float FadeRate, int Flag)
     float PosYDef[2][4] = { { 288.0f, 320.0f, 352.0f, 384.0f }, { 272.0f, 304.0f, 336.0f, 368.0f } }; 
     float VDef[2][4] = { { 64.0f, 96.0f, 128.0f, 224.0f }, { 64.0f, 96.0f, 224.0f, 128.0f } }; 
 
+#ifdef TARGET_PC
+    for (i = 0; i < 4; i++) { PosYDef[0][i] -= PC_TITLE_LIFT; PosYDef[1][i] -= PC_TITLE_LIFT; }   /* room for EXIT GAME below */
+    if (!pc_title_exit_selected())
+#endif
     DivTbl[Cursor] = 1;
 
     i = (ap->ExtraFlag == 0) ? 0 : 1;
@@ -1746,6 +1750,9 @@ void DisplayGameModePlate(int Cursor, int CursorMax, float FadeRate, int Flag)
             AdvEasyDrawTextureS(1, Alpha | 0x7F7F7F, &Qtex[i + 1], 0.5f, 1, FadeRate);
         }
     } 
+#ifdef TARGET_PC
+    pc_title_exit_draw(CursorMax, FadeRate, Flag);
+#endif
 
     FlushPlate();
     
@@ -1955,6 +1962,12 @@ int CheckButton(int Level, int Flag, int MaxFlag)
     pc_title_mouse(Level, Flag);   /* hover moves the cursor, a click confirms */
 #endif
     CheckAdvScreenSaverStopKey(ap->PortId); 
+#ifdef TARGET_PC
+    if ((Level == 0) && pc_title_exit())   /* EXIT GAME below the game modes */
+    {
+        return -1;
+    }
+#endif
     
     if ((Level == 0) && (ap->Cursor[Level] == 0) && (Flag == 0)) 
     {
