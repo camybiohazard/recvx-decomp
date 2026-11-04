@@ -546,11 +546,13 @@ void    njCnkEasyDrawModel( NJS_CNK_MODEL *model )
 #ifdef TARGET_PC
 /* each camera of a room hides room parts it cannot see (cut.c, hidobj lists). Third person
    draws every room part; hor+ widescreen draws them in the margins (pc/glue/view_glue.c
-   pc_margin_part). Not a node without a model: hidden for good, cut.c bhSetCut never touches it
-   (drawing it read through a NULL model in 6/8, 7/25, 9/8, 9/17). */
+   pc_margin_part), except the few that are unused copies (pc_part_unused). Not a node without
+   a model: hidden for good, cut.c bhSetCut never touches it (drawing it read through a NULL
+   model in 6/8, 7/25, 9/8, 9/17). */
+int pc_part_unused(const void* obj);   /* pc/glue/view_glue.c */
 static int pc_show_hidden(NJS_CNK_OBJECT* obj)
 {
-    if (obj->model == NULL || !pc_is_room_object(obj)) return 0;
+    if (obj->model == NULL || !pc_is_room_object(obj) || pc_part_unused(obj)) return 0;
     return tps_cam_active || (pc_hor_scale() > 1.0f && pc_margin_part(obj));
 }
 #endif
