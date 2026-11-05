@@ -16,12 +16,21 @@
 #define PC_ADDPRIM3DEX(t, d, n) (pc_native_3d() ? Ps2AddPrim3DExNative(t, d, n, 0) : Ps2AddPrim3DEx(t, d, n))
 #define PC_ADDPRIM3DEX1P(t, d, n) (pc_native_3d() ? Ps2AddPrim3DExNative(t, d, n, 1) : Ps2AddPrim3DEx1P(t, d, n))
 #define PC_ADDPRIM3DEXI(t, d, n) (pc_native_3d() ? Ps2AddPrim3DExNative(t, d, n, 2) : Ps2AddPrim3DExI(t, d, n))
+/* per-pixel lighting for these strips (pc/glue/native_glue.c pc_native_prim3d): the strip's colour mode, and for
+   each vertex built in Ps2_DRAW_TMP the strip vertex it came from, whose pad words name its vertex buffer entry
+   (ps2_NinjaCnk.c PC_STR_SRC: its view position and normal) */
+void pc_prim_begin(int mode);
+void pc_prim_note(int slot, const VU1_STRIP_BUF* src);
+#define PC_PRIM_BEGIN(mode) pc_prim_begin(mode)
+#define PC_PRIM_SRC(pp, ps) pc_prim_note((int)((pp) - (VU1_PRIM_BUF*)Ps2_DRAW_TMP), (ps))
 #else
 #define PC_SCISSOR 1
 #define PC_KICK_CULL 32768
 #define PC_ADDPRIM3DEX Ps2AddPrim3DEx
 #define PC_ADDPRIM3DEX1P Ps2AddPrim3DEx1P
 #define PC_ADDPRIM3DEXI Ps2AddPrim3DExI
+#define PC_PRIM_BEGIN(mode)
+#define PC_PRIM_SRC(pp, ps)
 #endif
 
 static SCISSOR_PLANE planeset;
@@ -1189,6 +1198,8 @@ void vu1DrawTriangleStripOpaqueSingle(unsigned long ulType, VU1_STRIP_BUF* pStri
     
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP;
     
+    PC_PRIM_BEGIN(usMode & 0xF);
+    
     pFunc = pColorCalcFuncTbl[(usMode & 0xFFFF) & 0xF];
     
     pFunc(pS0, pP);
@@ -1208,6 +1219,8 @@ void vu1DrawTriangleStripOpaqueSingle(unsigned long ulType, VU1_STRIP_BUF* pStri
     pP->fZ = pS0->fVz;
     
     pP->fF = pS0->fFog;
+    
+    PC_PRIM_SRC(pP, pS0);
     
     flg = _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1232,6 +1245,8 @@ void vu1DrawTriangleStripOpaqueSingle(unsigned long ulType, VU1_STRIP_BUF* pStri
     pP->fZ = pS1->fVz;
     
     pP->fF = pS1->fFog;
+    
+    PC_PRIM_SRC(pP, pS1);
     
     flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1258,6 +1273,8 @@ void vu1DrawTriangleStripOpaqueSingle(unsigned long ulType, VU1_STRIP_BUF* pStri
         pP->fZ = pS2->fVz;
         
         pP->fF = pS2->fFog;
+        
+        PC_PRIM_SRC(pP, pS2);
         
         flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
         
@@ -1305,6 +1322,8 @@ void vu1DrawTriangleStripOpaqueDouble(unsigned long ulType, VU1_STRIP_BUF* pS, u
     
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP;
     
+    PC_PRIM_BEGIN(usMode & 0xF);
+    
     pFunc = pColorCalcFuncTbl[(usMode & 0xFFFF) & 0xF];
     
     pFunc(pS, pP);
@@ -1324,6 +1343,8 @@ void vu1DrawTriangleStripOpaqueDouble(unsigned long ulType, VU1_STRIP_BUF* pS, u
     pP->fZ = pS->fVz;
     
     pP->fF = pS->fFog;
+    
+    PC_PRIM_SRC(pP, pS);
     
     flg = _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1349,6 +1370,8 @@ void vu1DrawTriangleStripOpaqueDouble(unsigned long ulType, VU1_STRIP_BUF* pS, u
     pP->fZ = pS->fVz;
     
     pP->fF = pS->fFog;
+    
+    PC_PRIM_SRC(pP, pS);
     
     flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1376,6 +1399,8 @@ void vu1DrawTriangleStripOpaqueDouble(unsigned long ulType, VU1_STRIP_BUF* pS, u
         pP->fZ = pS->fVz;
         
         pP->fF = pS->fFog;
+        
+        PC_PRIM_SRC(pP, pS);
         
         flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
         
@@ -1424,6 +1449,8 @@ void vu1DrawTriangleStripTransSingle(unsigned long ulType, VU1_STRIP_BUF* pStrip
     
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP;
     
+    PC_PRIM_BEGIN(usMode & 0xF);
+    
     pFunc = pColorCalcFuncTbl[(usMode & 0xFFFF) & 0xF];
     
     pFunc(pS0, pP);
@@ -1443,6 +1470,8 @@ void vu1DrawTriangleStripTransSingle(unsigned long ulType, VU1_STRIP_BUF* pStrip
     pP->fZ = pS0->fVz;
     
     pP->fF = pS0->fFog;
+    
+    PC_PRIM_SRC(pP, pS0);
     
     flg = _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1467,6 +1496,8 @@ void vu1DrawTriangleStripTransSingle(unsigned long ulType, VU1_STRIP_BUF* pStrip
     pP->fZ = pS1->fVz;
     
     pP->fF = pS1->fFog;
+    
+    PC_PRIM_SRC(pP, pS1);
     
     flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
     
@@ -1493,6 +1524,8 @@ void vu1DrawTriangleStripTransSingle(unsigned long ulType, VU1_STRIP_BUF* pStrip
         pP->fZ = pS2->fVz;
         
         pP->fF = pS2->fFog;
+        
+        PC_PRIM_SRC(pP, pS2);
         
         flg |= _Check_DisplayAreaPoint((NJS_VECTOR*)&pP->fX);
         
@@ -1624,6 +1657,8 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
 #endif
    
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP; 
+   
+    PC_PRIM_BEGIN(usMode & 0xF);
     
     if (clipswitch == 0) 
     { 
@@ -1677,6 +1712,7 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
             op1.f[0] = (float)(fVu1OffsetY);
             op2.sd[0] = (int32_t)(uintptr_t)(pS);
             op3.sd[0] = (int32_t)(uintptr_t)(pP);
+            PC_PRIM_SRC(pP, pS);   /* (per-pixel lighting: which vertex) */
             vu_load_vf(4, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fIr)))));
             vu_load_vf(14, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fVx)))));
             vu0_callms(VU0_ADDR_VU0_CALC_COLOR);
@@ -1773,6 +1809,7 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
             op1.f[0] = (float)(fVu1OffsetY);
             op2.sd[0] = (int32_t)(uintptr_t)(pS);
             op3.sd[0] = (int32_t)(uintptr_t)(pP);
+            PC_PRIM_SRC(pP, pS);   /* (per-pixel lighting: which vertex) */
             vu_load_vf(4, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fIr)))));
             vu_load_vf(14, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fVx)))));
             vu0_callms(VU0_ADDR_VU0_CALC_COLOR);
@@ -1871,6 +1908,7 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
                 op1.f[0] = (float)(fVu1OffsetY);
                 op2.sd[0] = (int32_t)(uintptr_t)(pS);
                 op3.sd[0] = (int32_t)(uintptr_t)(pP);
+                PC_PRIM_SRC(pP, pS);   /* (per-pixel lighting: which vertex) */
                 vu_load_vf(4, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fIr)))));
                 vu_load_vf(14, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fVx)))));
                 vu0_callms(VU0_ADDR_VU0_CLIP_VIEW_VOLUME_ALL);
@@ -1979,6 +2017,8 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
         
         pP->fF = pS->fFog; 
         
+        PC_PRIM_SRC(pP, pS);
+        
 #ifndef TARGET_PC
         asm volatile 
         ("
@@ -2032,6 +2072,8 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
         pP->fZ = pS->fVz; 
         
         pP->fF = pS->fFog; 
+        
+        PC_PRIM_SRC(pP, pS);
         
 #ifndef TARGET_PC
         asm volatile 
@@ -2088,6 +2130,8 @@ void vu1DrawTriangleStripTransDouble(unsigned long ulType, VU1_STRIP_BUF* pS, un
             pP->fZ = pS->fVz; 
             
             pP->fF = pS->fFog; 
+            
+            PC_PRIM_SRC(pP, pS);
             
 #ifndef TARGET_PC
             asm volatile 
@@ -2797,6 +2841,8 @@ void vu1DrawTriangleStripTransDoubleI(unsigned long ulType, VU1_STRIP_BUF* pS, u
     
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP; 
     
+    PC_PRIM_BEGIN(usMode & 0xF);
+    
     pFunc = pColorCalcFuncTbl[usMode & 0xF]; 
     
     for (usStripCnt = 0; usStripCnt < usStripMax; usStripCnt++, pS++, pP++) 
@@ -2880,6 +2926,7 @@ void vu1DrawTriangleStripTransDoubleI(unsigned long ulType, VU1_STRIP_BUF* pS, u
             op1.sd[0] = (int32_t)(uintptr_t)(&clipflag);
             op2.sd[0] = (int32_t)(uintptr_t)(pS);
             op3.sd[0] = (int32_t)(uintptr_t)(pP);
+            PC_PRIM_SRC(pP, pS);   /* (per-pixel lighting: which vertex) */
             vu_load_vf(4, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fSx)))));
             vu_load_vf(5, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fU)))));
             vu_load_vf(6, EE_PTR((op2.w[0] + (uint32_t)(offsetof(VU1_STRIP_BUF, fVx)))));
@@ -3064,6 +3111,8 @@ void vu1DrawTriangleStripTransDouble1P(unsigned long ulType, VU1_STRIP_BUF* pS, 
     InitNodeArraySet(&scissorflip); 
     
     pP = (VU1_PRIM_BUF*)Ps2_DRAW_TMP; 
+    
+    PC_PRIM_BEGIN(usMode & 0xF);
 
     sam = 0;
     
@@ -3091,6 +3140,8 @@ void vu1DrawTriangleStripTransDouble1P(unsigned long ulType, VU1_STRIP_BUF* pS, 
         pP->fZ = pS->fVz;
         
         pP->fF = pS->fFog;
+        
+        PC_PRIM_SRC(pP, pS);
 
         pP->ulKick = 0;
 

@@ -17,6 +17,14 @@
 #endif
 
 static VU1_STRIP_BUF* pNaCnkVerBufTop;
+#ifdef TARGET_PC
+VU1_STRIP_BUF* pc_cnk_verbuf(void) { return pNaCnkVerBufTop; }   /* pc/glue/native_glue.c prim_light */
+/* a strip's vertices copied for the CPU strip functions keep the vertex buffer entry they came from in the unused
+   pad words (index, marker), for their per-pixel lighting (ps2_Vu1Strip.c PC_PRIM_SRC) */
+#define PC_STR_SRC(s, v) (*(int*)&(s)->fPad0 = (int)((v) - pNaCnkVerBufTop), *(unsigned int*)&(s)->fPad1 = 0x5C0FFEE5u)
+#else
+#define PC_STR_SRC(s, v)
+#endif
 static int iNaCnkVerBufMax;
 static VU1_STRIP_BUF NaCnkStrBufTop[200];
 static unsigned int Vu0ClipFlag;
@@ -2027,6 +2035,7 @@ CHUNK_HEAD* njCnkCs(CHUNK_HEAD* pCnk)
         *(u_long128*)&pS->fVx = *(u_long128*)&pV->fVx; 
         *(u_long128*)&pS->fSx = *(u_long128*)&pV->fSx; 
         *(u_long128*)&pS->fIr = *(u_long128*)&pV->fIr; 
+        PC_STR_SRC(pS, pV);
         
         pS++;
         
@@ -2037,6 +2046,7 @@ CHUNK_HEAD* njCnkCs(CHUNK_HEAD* pCnk)
         *(u_long128*)&pS->fVx = *(u_long128*)&pV->fVx; 
         *(u_long128*)&pS->fSx = *(u_long128*)&pV->fSx; 
         *(u_long128*)&pS->fIr = *(u_long128*)&pV->fIr; 
+        PC_STR_SRC(pS, pV);
 
         pS++;
         
@@ -2049,6 +2059,7 @@ CHUNK_HEAD* njCnkCs(CHUNK_HEAD* pCnk)
             *(u_long128*)&pS->fVx = *(u_long128*)&pV->fVx; 
             *(u_long128*)&pS->fSx = *(u_long128*)&pV->fSx; 
             *(u_long128*)&pS->fIr = *(u_long128*)&pV->fIr; 
+            PC_STR_SRC(pS, pV);
             
             pS++; 
             
@@ -2600,6 +2611,7 @@ CHUNK_HEAD* njCnkCsUvh(CHUNK_HEAD* pCnk)
                     *(u_long128*)&pS->fVx = *(u_long128*)&pV->fVx;
                     *(u_long128*)&pS->fSx = *(u_long128*)&pV->fSx;
                     *(u_long128*)&pS->fIr = *(u_long128*)&pV->fIr;
+                    PC_STR_SRC(pS, pV);
                     
                     pS->fU = 0.0009775171f * *uspCnk++;
                     pS->fV = 0.0009775171f * *uspCnk++;
@@ -3121,6 +3133,7 @@ CHUNK_HEAD* njCnkCsUvn(CHUNK_HEAD* pCnk)
                     *(u_long128*)&pS->fVx = *(u_long128*)&pV->fVx;
                     *(u_long128*)&pS->fSx = *(u_long128*)&pV->fSx;
                     *(u_long128*)&pS->fIr = *(u_long128*)&pV->fIr;
+                    PC_STR_SRC(pS, pV);
                     
                     pS->fU = 0.003921569f * *uspCnk++;
                     pS->fV = 0.003921569f * *uspCnk++;
